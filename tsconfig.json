@@ -9,7 +9,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "outDir": "dist",
+    "rootDir": "."
   },
-  "include": ["src/**/*"]
+  "include": ["client/**/*", "server/**/*", "shared/**/*"]
 }
