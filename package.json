@@ -1,0 +1,24 @@
+{
+  "name": "pi-webui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mariozechner/mini-lit": "^0.2.1",
+    "@mariozechner/pi-agent-core": "^0.66.1",
+    "@mariozechner/pi-ai": "^0.66.1",
+    "@mariozechner/pi-web-ui": "^0.66.1",
+    "@tailwindcss/vite": "^4.1.17",
+    "lit": "^3.3.1",
+    "lucide": "^0.544.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vite": "^7.1.6"
+  }
+}
