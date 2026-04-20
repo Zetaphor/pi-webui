@@ -53,6 +53,44 @@ function modelToInfo(model: Model<Api>): ModelInfo {
   };
 }
 
+function buildModelLookupCandidates(provider: string, modelId: string): Array<{ provider: string; modelId: string }> {
+  const normalizedProvider = provider.trim();
+  const normalizedModelId = modelId.trim();
+  const candidates: Array<{ provider: string; modelId: string }> = [];
+  const seen = new Set<string>();
+
+  const add = (candidateProvider: string, candidateModelId: string) => {
+    const p = candidateProvider.trim();
+    const id = candidateModelId.trim();
+    if (!p || !id) return;
+    const key = `${p}/${id}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    candidates.push({ provider: p, modelId: id });
+  };
+
+  // Exact pair from client message first.
+  add(normalizedProvider, normalizedModelId);
+
+  // Handle merged identifiers like provider=ollama/local and modelId=Qwen...
+  if (normalizedProvider.startsWith("ollama/")) {
+    const providerSuffix = normalizedProvider.slice("ollama/".length);
+    add("ollama", `${providerSuffix}/${normalizedModelId}`);
+  }
+
+  // Handle modelId values like ollama/local/Qwen...
+  if (normalizedModelId.startsWith("ollama/")) {
+    add("ollama", normalizedModelId.slice("ollama/".length));
+  }
+
+  // Best-effort fallback for Ollama if client sent bare model name.
+  if (normalizedProvider === "ollama" && !normalizedModelId.includes("/")) {
+    add("ollama", `local/${normalizedModelId}`);
+  }
+
+  return candidates;
+}
+
 function serializeState(): SerializedAgentState {
   const state = session.agent.state;
   return {
@@ -98,8 +136,8 @@ async function fetchLiteLLMModels(): Promise<ModelInfo[]> {
     const json = await res.json() as { data?: Array<{ id: string; owned_by?: string }> };
     return (json.data || []).map((m) => ({
       provider: "ollama",
-      id: m.id,
-      name: m.id,
+      id: m.id.trim(),
+      name: m.id.trim(),
     }));
   } catch (err) {
     console.error("Failed to fetch LiteLLM models:", err);
@@ -198,7 +236,12 @@ async function handleClientMessage(ws: WebSocket, msg: ClientMessage) {
         break;
       }
       case "setModel": {
-        const model = findModel(msg.provider, msg.modelId);
+        let model: Model<Api> | undefined;
+        for (const candidate of buildModelLookupCandidates(msg.provider, msg.modelId)) {
+          model = findModel(candidate.provider, candidate.modelId);
+          if (model) break;
+        }
+
         if (!model) {
           send(ws, { type: "error", message: `Model not found: ${msg.provider}/${msg.modelId}` });
           return;
