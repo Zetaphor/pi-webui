@@ -2,6 +2,8 @@
 
 A full-stack web interface for the [Pi coding agent](https://github.com/badlogic/pi-mono), providing browser access to a system-level Pi agent with bash, file read/write/edit, and extension tools.
 
+Read the writeup on Sleeping Robots: [Pi Web UI: A Browser Interface for the Pi Coding Agent](https://sleepingrobots.com/dreams/pi-web-ui/).
+
 ## Architecture
 
 ```
